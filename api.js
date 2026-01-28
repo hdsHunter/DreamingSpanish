@@ -12,11 +12,16 @@ class DreamingSpanishAPI {
             const response = await fetch(
                 `${this.baseUrl}/user?timezone=${timezone}`,
                 {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
                     headers: {
                         'Authorization': `Bearer ${this.token}`,
                         'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
                         'Origin': 'https://app.dreaming.com',
-                        'Referer': 'https://app.dreaming.com/'
+                        'Referer': 'https://app.dreaming.com/',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
                 }
             );
@@ -29,8 +34,8 @@ class DreamingSpanishAPI {
             const data = await response.json();
             return data.user || data;
         } catch (error) {
-            if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                throw new Error('CORS Error: The API may not allow requests from this origin. Try using a browser extension or hosting this on a server.');
+            if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                throw new Error('CORS/Network Error: The Dreaming Spanish API may block requests from GitHub Pages. Try: 1) Using a CORS browser extension, 2) Opening the site locally, or 3) The API may be temporarily unavailable.');
             }
             throw error;
         }
@@ -41,11 +46,16 @@ class DreamingSpanishAPI {
             const response = await fetch(
                 `${this.baseUrl}/history?limit=${limit}`,
                 {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
                     headers: {
                         'Authorization': `Bearer ${this.token}`,
                         'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
                         'Origin': 'https://app.dreaming.com',
-                        'Referer': 'https://app.dreaming.com/'
+                        'Referer': 'https://app.dreaming.com/',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
                 }
             );
@@ -70,11 +80,16 @@ class DreamingSpanishAPI {
             const response = await fetch(
                 `${this.baseUrl}/videos`,
                 {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
                     headers: {
                         'Authorization': `Bearer ${this.token}`,
                         'Accept': '*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
                         'Origin': 'https://app.dreaming.com',
-                        'Referer': 'https://app.dreaming.com/'
+                        'Referer': 'https://app.dreaming.com/',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
                 }
             );

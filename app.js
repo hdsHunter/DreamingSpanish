@@ -164,16 +164,20 @@ async function loadData(token) {
         
         // Show detailed error message
         const errorMessage = error.message || 'Unknown error occurred';
+        const isNetworkError = errorMessage.includes('Failed to fetch') || 
+                              errorMessage.includes('NetworkError') ||
+                              error.name === 'TypeError';
+        
         let userMessage = 'Error loading data:\n\n';
         
-        if (errorMessage.includes('CORS')) {
-            userMessage += '⚠️ CORS Error Detected\n\n';
-            userMessage += 'The Dreaming Spanish API may block requests from local files.\n\n';
-            userMessage += 'Solutions:\n';
-            userMessage += '1. Use a local server: Run "python server.py" in the web folder\n';
-            userMessage += '2. Use a CORS browser extension\n';
-            userMessage += '3. Deploy to GitHub Pages or Netlify\n\n';
-            userMessage += `Technical error: ${errorMessage}`;
+        if (isNetworkError) {
+            userMessage += '⚠️ CORS/Network Error Detected\n\n';
+            userMessage += 'The Dreaming Spanish API is blocking requests from GitHub Pages.\n\n';
+            userMessage += 'Quick Fixes:\n';
+            userMessage += '1. Install a CORS browser extension (CORS Unblock, Allow CORS)\n';
+            userMessage += '2. Use the local version: Run "python server.py"\n';
+            userMessage += '3. Use the Streamlit version (main.py) - no CORS issues\n\n';
+            userMessage += 'This is a browser security restriction. The API only allows requests from app.dreaming.com.';
         } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
             userMessage += '🔐 Authentication Error\n\n';
             userMessage += 'Your token may have expired or is invalid.\n';
