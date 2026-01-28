@@ -1,0 +1,12 @@
+{
+  "name": "dreaming-spanish-cors-proxy",
+  "version": "1.0.0",
+  "description": "CORS proxy for Dreaming Spanish API",
+  "main": "api/proxy.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "keywords": ["cors", "proxy", "dreaming-spanish"],
+  "author": "",
+  "license": "MIT"
+}

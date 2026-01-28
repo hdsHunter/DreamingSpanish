@@ -101,7 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('settings-btn').addEventListener('click', () => {
         const modal = document.getElementById('settings-modal');
         const savedGoal = localStorage.getItem('dailyGoal') || '240';
+        const savedProxy = localStorage.getItem('dreamingSpanishProxyUrl') || '';
         document.getElementById('daily-goal-input').value = savedGoal;
+        document.getElementById('proxy-url-input').value = savedProxy;
         modal.classList.remove('hidden');
     });
 
@@ -118,6 +120,18 @@ document.addEventListener('DOMContentLoaded', () => {
             renderDashboard(appData.stats, appData.todayMinutes, appData.history, appData.dailyData);
         }
         document.getElementById('settings-modal').classList.add('hidden');
+    });
+
+    // Save proxy URL
+    document.getElementById('save-proxy-btn').addEventListener('click', () => {
+        const proxyUrl = document.getElementById('proxy-url-input').value.trim();
+        if (proxyUrl) {
+            localStorage.setItem('dreamingSpanishProxyUrl', proxyUrl);
+            alert('Proxy URL saved! Refresh data to use it.');
+        } else {
+            localStorage.removeItem('dreamingSpanishProxyUrl');
+            alert('Proxy URL cleared. Using direct requests (may fail due to CORS).');
+        }
     });
 
     // Change token
@@ -141,7 +155,8 @@ async function loadData(token) {
     // Keep token section hidden if we're auto-loading
 
     try {
-        const api = new DreamingSpanishAPI(token);
+        const proxyUrl = localStorage.getItem('dreamingSpanishProxyUrl') || null;
+        const api = new DreamingSpanishAPI(token, proxyUrl);
         const rawData = await api.fetchAllData();
 
         // Process data
@@ -164,31 +179,46 @@ async function loadData(token) {
         
         // Show detailed error message
         const errorMessage = error.message || 'Unknown error occurred';
-        const isNetworkError = errorMessage.includes('Failed to fetch') || 
-                              errorMessage.includes('NetworkError') ||
-                              error.name === 'TypeError';
+        const isCorsError = errorMessage === 'CORS_BLOCKED' ||
+                           errorMessage.includes('Failed to fetch') || 
+                           errorMessage.includes('NetworkError') ||
+                           error.name === 'TypeError';
         
-        let userMessage = 'Error loading data:\n\n';
+        let userMessage = '';
         
-        if (isNetworkError) {
-            userMessage += '⚠️ CORS/Network Error Detected\n\n';
-            userMessage += 'The Dreaming Spanish API is blocking requests from GitHub Pages.\n\n';
-            userMessage += 'Quick Fixes:\n';
-            userMessage += '1. Install a CORS browser extension (CORS Unblock, Allow CORS)\n';
-            userMessage += '2. Use the local version: Run "python server.py"\n';
-            userMessage += '3. Use the Streamlit version (main.py) - no CORS issues\n\n';
-            userMessage += 'This is a browser security restriction. The API only allows requests from app.dreaming.com.';
+        if (isCorsError) {
+            userMessage = `
+⚠️ CORS Error - API Blocked
+
+The Dreaming Spanish API blocks requests from GitHub Pages (browser security).
+
+🔧 SOLUTIONS (pick one):
+
+1️⃣ CORS Browser Extension (Easiest)
+   • Chrome: Install "CORS Unblock" or "Allow CORS"
+   • Firefox: Install "CORS Everywhere"
+   • Enable extension → Refresh page
+
+2️⃣ Deploy Backend Proxy (Best for Production)
+   • Deploy web/proxy/ to Vercel (free)
+   • Get URL → Add to Settings → Save
+   • See web/proxy/README.md for instructions
+
+3️⃣ Run Locally (Works Immediately)
+   • Run: python server.py
+   • Open: http://localhost:8000
+   • No CORS issues!
+
+4️⃣ Use Streamlit Version
+   • Run: streamlit run main.py
+   • No CORS issues (server-side)
+
+The Streamlit app works because it runs server-side, not in the browser.
+            `.trim();
         } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
-            userMessage += '🔐 Authentication Error\n\n';
-            userMessage += 'Your token may have expired or is invalid.\n';
-            userMessage += 'Please get a fresh token from Dreaming Spanish.\n\n';
-            userMessage += `Error: ${errorMessage}`;
+            userMessage = `🔐 Authentication Error\n\nYour token may have expired. Please get a fresh token from Dreaming Spanish.\n\nError: ${errorMessage}`;
         } else {
-            userMessage += `${errorMessage}\n\n`;
-            userMessage += 'Possible causes:\n';
-            userMessage += '- Token expired\n';
-            userMessage += '- Network error\n';
-            userMessage += '- API temporarily unavailable';
+            userMessage = `Error: ${errorMessage}\n\nPossible causes:\n- Token expired\n- Network error\n- API temporarily unavailable`;
         }
         
         // Show token section to allow re-entry
