@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreaming Spanish Stats</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>
+            <span class="sun-icon">☀️</span>
+            <span class="title-text">Dreaming Spanish Stats</span>
+        </h1>
+        <p class="subtitle">Advanced Analytics for Your Spanish Learning Journey</p>
+        <div id="header-buttons" class="hidden" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+            <button id="refresh-btn" class="btn-primary">🔄 Refresh Data</button>
+            <button id="settings-btn" class="btn-primary" style="background: rgba(255,255,255,0.1);">⚙️ Settings</button>
+        </div>
+    </header>
+
+    <!-- Token Input Section -->
+    <section id="token-section" class="card">
+        <h2>🔐 Authentication</h2>
+        <p>Enter your Dreaming Spanish Bearer Token to get started.</p>
+        <div class="token-input-group">
+            <input type="password" id="token-input" placeholder="Bearer Token (starts with eyJ...)" />
+            <button id="save-token-btn" class="btn-primary">Save & Load</button>
+        </div>
+        <div id="cors-warning" class="warning-box" style="background: rgba(233, 196, 106, 0.2); border-left: 4px solid #E9C46A; padding: 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; display: none;">
+            <strong>⚠️ CORS Warning:</strong> If you're opening this file directly (file://), you may encounter CORS errors. 
+            <br><br>
+            <strong>Solution:</strong> Use a local server instead:
+            <br>• Run <code>python server.py</code> in the web folder
+            <br>• Or use <code>python -m http.server 8000</code>
+            <br>• Then open <code>http://localhost:8000</code>
+        </div>
+        <p class="help-text">
+            <strong>How to get your token:</strong><br>
+            1. Log into dreamingspanish.com<br>
+            2. Open browser DevTools (F12)<br>
+            3. Go to Network tab<br>
+            4. Refresh the page<br>
+            5. Look for API requests and copy the Bearer token from Authorization header
+        </p>
+    </section>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Loading your Dreaming Spanish data...</p>
+    </div>
+
+    <!-- Main Dashboard -->
+    <main id="dashboard" class="hidden">
+        <!-- Today's Progress -->
+        <section id="today-progress" class="card today-card">
+            <h2>📅 Today's Progress</h2>
+            <div class="today-content">
+                <div class="progress-main">
+                    <div class="progress-display">
+                        <span id="today-minutes" class="big-number">0</span>
+                        <span class="progress-divider">/</span>
+                        <span id="goal-minutes" class="goal-number">240</span>
+                        <span class="unit">min</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                    <p id="progress-message" class="progress-message"></p>
+                </div>
+                <div class="daily-fact">
+                    <h3>💡 Daily Fact</h3>
+                    <p id="fact-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Countdown Cards -->
+        <section id="countdowns" class="countdown-grid">
+            <!-- Will be populated by JS -->
+        </section>
+
+        <!-- Key Metrics -->
+        <section id="key-metrics" class="metrics-grid">
+            <!-- Will be populated by JS -->
+        </section>
+
+        <!-- Progress Gauge -->
+        <section class="card">
+            <h2>🎯 Current Level Progress</h2>
+            <div id="progress-gauge"></div>
+        </section>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="overview">📊 Overview</button>
+            <button class="tab-btn" data-tab="predictions">🔮 Predictions</button>
+            <button class="tab-btn" data-tab="analytics">📈 Analytics</button>
+            <button class="tab-btn" data-tab="heatmap">🗓️ Heatmap</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content">
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-panel active">
+                <section class="card">
+                    <h2>📈 Learning Progress</h2>
+                    <div id="cumulative-chart"></div>
+                </section>
+                <section class="card">
+                    <h2>📊 Daily Activity</h2>
+                    <div id="daily-chart"></div>
+                </section>
+            </div>
+
+            <!-- Predictions Tab -->
+            <div id="predictions-tab" class="tab-panel">
+                <section class="card">
+                    <h2>🔮 Milestone Predictions</h2>
+                    <div id="predictions-table"></div>
+                </section>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-panel">
+                <section class="card">
+                    <h2>📏 Video Duration Distribution</h2>
+                    <div id="duration-chart"></div>
+                </section>
+                <section class="card">
+                    <h2>📚 Content Level Distribution</h2>
+                    <div id="level-pie"></div>
+                </section>
+            </div>
+
+            <!-- Heatmap Tab -->
+            <div id="heatmap-tab" class="tab-panel">
+                <section class="card">
+                    <h2>🗓️ Activity Heatmap</h2>
+                    <div id="heatmap-chart"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>⚙️ Settings</h2>
+            <div style="margin: 1rem 0;">
+                <label style="display: block; margin-bottom: 0.5rem;">Daily Goal (minutes):</label>
+                <input type="number" id="daily-goal-input" value="240" min="30" max="480" step="15" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-primary);" />
+            </div>
+            <div style="margin: 1rem 0;">
+                <button id="update-goal-btn" class="btn-primary" style="width: 100%;">Update Goal</button>
+            </div>
+            <div style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Token Management:</p>
+                <button id="change-token-btn" class="btn-primary" style="width: 100%; background: var(--warning);">Change Token</button>
+            </div>
+            <button id="close-settings-btn" class="btn-primary" style="width: 100%; margin-top: 1rem; background: rgba(255,255,255,0.1);">Close</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="api.js"></script>
+    <script src="data-processor.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
